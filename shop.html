@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🛒 My Mini Shopping Cart</title>
+    <link rel="stylesheet" href="shop.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>🛒 My Mini Shopping Cart</h1>
+        <div class="cart-icon" id="cart-count">0</div>
+      </header>
+
+      <main class="main-content">
+        <section class="products-section">
+          <h2>Available Products</h2>
+          <div class="products-grid" id="products-grid"></div>
+        </section>
+
+        <section class="cart-section">
+          <h2>Your Shopping Cart</h2>
+          <div class="cart-container">
+            <table class="cart-table" id="cart-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Subtotal</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="cart-items"></tbody>
+            </table>
+            <div class="cart-empty" id="cart-empty">Your cart is empty</div>
+          </div>
+
+          <div class="cart-summary">
+            <div class="summary-row" id="subtotal-row">
+              <span>Subtotal:</span>
+              <span id="subtotal">$0.00</span>
+            </div>
+            <div class="summary-row" id="discount-row" style="display: none">
+              <span>Discount:</span>
+              <span id="discount-amount">-$0.00</span>
+            </div>
+            <div class="summary-row">
+              <span>VAT (15%):</span>
+              <span id="vat-amount">+$0.00</span>
+            </div>
+            <div class="summary-row total-row">
+              <span>Total:</span>
+              <span id="total-amount">$0.00</span>
+            </div>
+          </div>
+
+          <div class="discount-options">
+            <h3>Apply Discount:</h3>
+            <button class="discount-btn" onclick="applyDiscount('ten-percent')">
+              10% Off
+            </button>
+            <button
+              class="discount-btn"
+              onclick="applyDiscount('buy-two-get-one')"
+            >
+              Buy 2 Get 1 Free
+            </button>
+            <button class="discount-btn clear-btn" onclick="clearDiscount()">
+              Clear Discount
+            </button>
+          </div>
+
+          <button
+            class="checkout-btn"
+            id="checkout-btn"
+            onclick="performCheckout()"
+          >
+            Proceed to Checkout
+          </button>
+        </section>
+      </main>
+
+      <div class="receipt-modal" id="receipt-modal">
+        <div class="receipt-container">
+          <div class="receipt-header">
+            <h2>🧾 Purchase Receipt</h2>
+            <div class="receipt-date" id="receipt-date"></div>
+          </div>
+          <div class="receipt-divider"></div>
+          <div class="receipt-items" id="receipt-items"></div>
+          <div class="receipt-divider"></div>
+          <div class="receipt-totals" id="receipt-totals"></div>
+          <div class="receipt-footer">
+            <p>Thank you for your purchase!</p>
+            <p>Have a great day! 😊</p>
+          </div>
+          <button class="receipt-close-btn" onclick="closeReceipt()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="shop.js"></script>
+    <script src="newCart.js"></script>
+  </body>
+</html>
