@@ -35,6 +35,3 @@ This is a simple web-based shopping cart system built with **HTML**, **CSS**, an
 ![image](https://github.com/user-attachments/assets/36c287cc-2167-42ab-a546-246ed09fbd77)
 ![image](https://github.com/user-attachments/assets/5ee1f725-9be8-4294-a770-af8543f37acf)
 ![image](https://github.com/user-attachments/assets/33ec38a1-bf05-43f3-bafb-528af6c3fe47)
-
-
-- Shoutout to Claude for the CSS enhancments
