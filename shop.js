@@ -68,43 +68,48 @@ function tenPercentOff(total) {
   return total * 0.9;
 }
 
-// Updated Buy 2 Get 1 Free logic
+// Applies a "Buy 2, Get 1 Free" discount to a list of products.
+// For every group of 3 items (regardless of product type), the cheapest in the group is free.
 function buyTwoGetOneFree(total, products) {
-  // Calculate total number of items
-  const totalItems = products.reduce(
-    (sum, product) => sum + product.quantity,
-    0
-  );
-
-  // For every 3 items, customer pays for only 2 (gets 1 free)
-  const groupsOfThree = Math.floor(totalItems / 3);
-  const freeItems = groupsOfThree; // 1 free item per group of 3
-
-  if (freeItems === 0) {
-    return total; // No discount if less than 3 items
-  }
-
-  // Create array of all individual item prices
   const allItemPrices = [];
+
+  // Flatten all product quantities into a single array of prices
   products.forEach((product) => {
     for (let i = 0; i < product.quantity; i++) {
       allItemPrices.push(product.price);
     }
   });
 
-  // Sort prices from cheapest to most expensive
-  allItemPrices.sort((a, b) => a - b);
+  const totalItems = allItemPrices.length;
 
-  // The free items are the cheapest ones
-  const discountAmount = allItemPrices
-    .slice(0, freeItems)
-    .reduce((sum, price) => sum + price, 0);
+  // No discount if fewer than 3 items
+  if (totalItems < 3) return total;
+
+  // Step 2: Sort all prices from highest to lowest for optimal discount grouping
+  allItemPrices.sort((a, b) => b - a);
+
+  let discountAmount = 0;
+  const groupsOfThree = Math.floor(totalItems / 3);
+
+  // Step 3: For each group of 3, give the cheapest item for free
+  for (let i = 0; i < groupsOfThree; i++) {
+    const startIndex = i * 3;
+    const group = allItemPrices.slice(startIndex, startIndex + 3);
+
+    if (group.length === 3) {
+      const cheapestInGroup = Math.min(...group);
+      discountAmount += cheapestInGroup;
+
+      console.log(
+        `Group ${i + 1}: [${group.join(", ")}] - Free item: $${cheapestInGroup}`
+      );
+    }
+  }
 
   console.log(
-    `Buy 2 Get 1 Free: ${totalItems} items total, ${freeItems} free items, discount: $${discountAmount.toFixed(
-      2
-    )}`
+    `Buy 2 Get 1 Free Applied: ${totalItems} items, ${groupsOfThree} free items`
   );
+  console.log(`Total discount: $${discountAmount.toFixed(2)}`);
 
   return total - discountAmount;
 }
