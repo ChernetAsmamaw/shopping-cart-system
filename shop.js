@@ -68,13 +68,45 @@ function tenPercentOff(total) {
   return total * 0.9;
 }
 
-// Discount callback: Buy 2 get 1 free
+// Updated Buy 2 Get 1 Free logic
 function buyTwoGetOneFree(total, products) {
-  if (products.length >= 3) {
-    const cheapest = [...products].sort((a, b) => a.price - b.price)[0];
-    return total - cheapest.price;
+  // Calculate total number of items
+  const totalItems = products.reduce(
+    (sum, product) => sum + product.quantity,
+    0
+  );
+
+  // For every 3 items, customer pays for only 2 (gets 1 free)
+  const groupsOfThree = Math.floor(totalItems / 3);
+  const freeItems = groupsOfThree; // 1 free item per group of 3
+
+  if (freeItems === 0) {
+    return total; // No discount if less than 3 items
   }
-  return total;
+
+  // Create array of all individual item prices
+  const allItemPrices = [];
+  products.forEach((product) => {
+    for (let i = 0; i < product.quantity; i++) {
+      allItemPrices.push(product.price);
+    }
+  });
+
+  // Sort prices from cheapest to most expensive
+  allItemPrices.sort((a, b) => a - b);
+
+  // The free items are the cheapest ones
+  const discountAmount = allItemPrices
+    .slice(0, freeItems)
+    .reduce((sum, price) => sum + price, 0);
+
+  console.log(
+    `Buy 2 Get 1 Free: ${totalItems} items total, ${freeItems} free items, discount: $${discountAmount.toFixed(
+      2
+    )}`
+  );
+
+  return total - discountAmount;
 }
 
 // Tax callback: 15% VAT

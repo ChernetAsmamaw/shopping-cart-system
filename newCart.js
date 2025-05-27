@@ -50,6 +50,46 @@ function updateQuantity(productId, newQuantity) {
   }
 }
 
+// Calculate Buy 2 Get 1 Free details for UI display
+function getBuyTwoGetOneFreeDetails(products) {
+  const totalItems = products.reduce(
+    (sum, product) => sum + product.quantity,
+    0
+  );
+  const groupsOfThree = Math.floor(totalItems / 3);
+  const freeItems = groupsOfThree;
+
+  if (freeItems === 0) {
+    return {
+      freeItems: 0,
+      discountAmount: 0,
+      description: "Add more items to qualify",
+    };
+  }
+
+  // Create array of all individual item prices
+  const allItemPrices = [];
+  products.forEach((product) => {
+    for (let i = 0; i < product.quantity; i++) {
+      allItemPrices.push(product.price);
+    }
+  });
+
+  // Sort prices from cheapest to most expensive
+  allItemPrices.sort((a, b) => a - b);
+
+  // The free items are the cheapest ones
+  const discountAmount = allItemPrices
+    .slice(0, freeItems)
+    .reduce((sum, price) => sum + price, 0);
+
+  return {
+    freeItems,
+    discountAmount,
+    description: `${freeItems} free item${freeItems > 1 ? "s" : ""}`,
+  };
+}
+
 // Update cart display
 function updateCartDisplay() {
   const cartItems = document.getElementById("cart-items");
@@ -100,22 +140,46 @@ function updateCartDisplay() {
   }
 
   updateCartSummary();
+  updateDiscountButtonText();
 }
+
+// Update discount button text to show current deal status
+// function updateDiscountButtonText() {
+//   const totalItems = cartInstance.products.reduce(
+//     (sum, p) => sum + p.quantity,
+//     0
+//   );
+//   const buyTwoGetOneBtn = document.querySelector(
+//     "[onclick=\"applyDiscount('buy-two-get-one')\"]"
+//   );
+
+//   if (totalItems < 3) {
+//     const needed = 3 - totalItems;
+//     buyTwoGetOneBtn.textContent = `Buy 2 Get 1 Free (Need ${needed} more)`;
+//   } else {
+//     const details = getBuyTwoGetOneFreeDetails(cartInstance.products);
+//     buyTwoGetOneBtn.textContent = `Buy 2 Get 1 Free (${details.freeItems} free!)`;
+//   }
+// }
 
 // Update cart summary
 function updateCartSummary() {
   const subtotal = cartInstance.getTotal();
   let discountAmount = 0;
   let totalBeforeVAT = subtotal;
+  let discountDescription = "";
 
   // Apply discount if any
   if (currentDiscount) {
     if (currentDiscount === "ten-percent") {
       totalBeforeVAT = tenPercentOff(subtotal);
       discountAmount = subtotal - totalBeforeVAT;
+      discountDescription = "10% Off";
     } else if (currentDiscount === "buy-two-get-one") {
       totalBeforeVAT = buyTwoGetOneFree(subtotal, cartInstance.products);
       discountAmount = subtotal - totalBeforeVAT;
+      const details = getBuyTwoGetOneFreeDetails(cartInstance.products);
+      discountDescription = `Buy 2 Get 1 Free - ${details.description}`;
     }
   }
 
@@ -133,11 +197,35 @@ function updateCartSummary() {
   document.getElementById("total-amount").textContent = `$${total.toFixed(2)}`;
 
   const discountRow = document.getElementById("discount-row");
-  discountRow.style.display = discountAmount !== 0 ? "flex" : "none";
+  const discountSpan = discountRow.querySelector("span:first-child");
+
+  if (discountAmount !== 0) {
+    discountRow.style.display = "flex";
+    discountSpan.textContent = discountDescription + ":";
+  } else {
+    discountRow.style.display = "none";
+    discountSpan.textContent = "Discount:";
+  }
 }
 
 // Apply discount
 function applyDiscount(discountType) {
+  // Check if Buy 2 Get 1 Free can be applied
+  if (discountType === "buy-two-get-one") {
+    const totalItems = cartInstance.products.reduce(
+      (sum, p) => sum + p.quantity,
+      0
+    );
+    if (totalItems < 3) {
+      alert(
+        `You need at least 3 items to use "Buy 2 Get 1 Free". You currently have ${totalItems} item${
+          totalItems === 1 ? "" : "s"
+        }.`
+      );
+      return;
+    }
+  }
+
   currentDiscount = discountType;
   updateCartSummary();
 
@@ -197,7 +285,7 @@ function showReceipt() {
               <div class="receipt-item">
                   <span class="item-name">${item.name}</span>
                   <span class="item-details">
-                      ${item.quantity} x ${item.price.toFixed(2)} = ${(
+                      ${item.quantity} x $${item.price.toFixed(2)} = $${(
       item.price * item.quantity
     ).toFixed(2)}
                   </span>
@@ -210,14 +298,20 @@ function showReceipt() {
   const subtotal = cartInstance.getTotal();
   let totalBeforeVAT = subtotal;
   let discountAmount = 0;
+  let discountDescription = "";
 
   if (currentDiscount) {
     if (currentDiscount === "ten-percent") {
       totalBeforeVAT = tenPercentOff(subtotal);
       discountAmount = subtotal - totalBeforeVAT;
+      discountDescription = "10% Off";
     } else if (currentDiscount === "buy-two-get-one") {
       totalBeforeVAT = buyTwoGetOneFree(subtotal, cartInstance.products);
       discountAmount = subtotal - totalBeforeVAT;
+      const details = getBuyTwoGetOneFreeDetails(cartInstance.products);
+      discountDescription = `Buy 2 Get 1 Free (${details.freeItems} free item${
+        details.freeItems > 1 ? "s" : ""
+      })`;
     }
   }
 
@@ -227,15 +321,15 @@ function showReceipt() {
   let totalsHTML = `
           <div class="receipt-total-line">
               <span>Subtotal:</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>$${subtotal.toFixed(2)}</span>
           </div>
       `;
 
   if (discountAmount !== 0) {
     totalsHTML += `
               <div class="receipt-total-line discount-line">
-                  <span>Discount:</span>
-                  <span>-${discountAmount.toFixed(2)}</span>
+                  <span>${discountDescription}:</span>
+                  <span>-$${discountAmount.toFixed(2)}</span>
               </div>
           `;
   }
@@ -243,11 +337,11 @@ function showReceipt() {
   totalsHTML += `
           <div class="receipt-total-line">
               <span>VAT (15%):</span>
-              <span>+${vatAmount.toFixed(2)}</span>
+              <span>+$${vatAmount.toFixed(2)}</span>
           </div>
           <div class="receipt-total-line final-total">
               <span>TOTAL:</span>
-              <span>${total.toFixed(2)}</span>
+              <span>$${total.toFixed(2)}</span>
           </div>
       `;
 
