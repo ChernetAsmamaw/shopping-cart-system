@@ -68,48 +68,73 @@ function tenPercentOff(total) {
   return total * 0.9;
 }
 
-// Applies a "Buy 2, Get 1 Free" discount to a list of products.
-// For every group of 3 items (regardless of product type), the cheapest in the group is free.
+// Applies a "Buy 2, Get 1 Free" discount with two priority rules:
+// Same product - for every 3 of same product, 1 is free
+// Mixed products - for remaining items, every 3 items makes cheapest free
 function buyTwoGetOneFree(total, products) {
-  const allItemPrices = [];
+  let discountAmount = 0;
+  const remainingItems = []; // Items left after same-product discounts
 
-  // Flatten all product quantities into a single array of prices
-  products.forEach((product) => {
-    for (let i = 0; i < product.quantity; i++) {
-      allItemPrices.push(product.price);
+  // Apply same-product discounts (Priority 1)
+  products.forEach((product, index) => {
+    const freeItems = Math.floor(product.quantity / 3);
+    const remainingQuantity = product.quantity - freeItems;
+
+    if (freeItems > 0) {
+      const sameProductDiscount = freeItems * product.price;
+      discountAmount += sameProductDiscount;
+      console.log(
+        `Product ${index + 1} (Price: $${product.price}): ${
+          product.quantity
+        } items → ${freeItems} free, ${remainingQuantity} remaining`
+      );
+      console.log(
+        `  Discount: ${freeItems} × $${product.price} = $${sameProductDiscount}`
+      );
+    } else {
+      console.log(
+        `Product ${index + 1} (Price: $${product.price}): ${
+          product.quantity
+        } items → 0 free, ${remainingQuantity} remaining`
+      );
+    }
+
+    // Add remaining items to mixed discount pool
+    for (let i = 0; i < remainingQuantity; i++) {
+      remainingItems.push(product.price);
     }
   });
 
-  const totalItems = allItemPrices.length;
+  // Apply mixed-product discounts (Priority 2)
+  console.log(
+    `Remaining items for mixed discount: [${remainingItems.join(", ")}]`
+  );
 
-  // No discount if fewer than 3 items
-  if (totalItems < 3) return total;
+  if (remainingItems.length >= 3) {
+    // Sort remaining items from cheapest to most expensive
+    remainingItems.sort((a, b) => a - b);
 
-  // Step 2: Sort all prices from highest to lowest for optimal discount grouping
-  allItemPrices.sort((a, b) => b - a);
+    const mixedGroupsOfThree = Math.floor(remainingItems.length / 3);
+    console.log(`Mixed groups of 3: ${mixedGroupsOfThree}`);
 
-  let discountAmount = 0;
-  const groupsOfThree = Math.floor(totalItems / 3);
-
-  // Step 3: For each group of 3, give the cheapest item for free
-  for (let i = 0; i < groupsOfThree; i++) {
-    const startIndex = i * 3;
-    const group = allItemPrices.slice(startIndex, startIndex + 3);
-
-    if (group.length === 3) {
-      const cheapestInGroup = Math.min(...group);
-      discountAmount += cheapestInGroup;
-
+    // Make the cheapest items free from mixed groups
+    for (let i = 0; i < mixedGroupsOfThree; i++) {
+      const freeItemPrice = remainingItems[i];
+      discountAmount += freeItemPrice;
       console.log(
-        `Group ${i + 1}: [${group.join(", ")}] - Free item: $${cheapestInGroup}`
+        `  Mixed group ${i + 1}: Cheapest item $${freeItemPrice} is free`
       );
     }
+  } else {
+    console.log(
+      "Not enough remaining items for mixed discount (need at least 3)"
+    );
   }
 
-  console.log(
-    `Buy 2 Get 1 Free Applied: ${totalItems} items, ${groupsOfThree} free items`
-  );
-  console.log(`Total discount: $${discountAmount.toFixed(2)}`);
+  console.log(`\n--- FINAL RESULT ---`);
+  console.log(`Total discount applied: $${discountAmount.toFixed(2)}`);
+  console.log(`Original total: $${total.toFixed(2)}`);
+  console.log(`Final total: $${(total - discountAmount).toFixed(2)}`);
 
   return total - discountAmount;
 }
